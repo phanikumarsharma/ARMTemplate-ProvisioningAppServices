@@ -1,0 +1,85 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "AppServiceName": {
+            "minLength": 1,
+            "type": "string"
+        },
+        "AppServiceSkuName": {
+            "defaultValue": "F1",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "Describes plan's pricing tier and capacity"
+            }
+        },
+        "WebAppName": {
+            "minLength": 1,
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "sku": {
+                "name": "[parameters('AppServiceSkuName')]"
+            },
+            "name": "[parameters('AppServiceName')]",
+            "apiVersion": "2015-08-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "appService"
+            },
+            "properties": {
+                "name": "[parameters('AppServiceName')]",
+                "numberOfWorkers": 1
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "name": "[parameters('WebAppName')]",
+            "apiVersion": "2015-08-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "[concat('hidden-related:', resourceId('Microsoft.Web/serverfarms', parameters('AppServiceName')))]": "Resource",
+                "displayName": "WebApp"
+            },
+            "properties": {
+                "name": "[parameters('WebAppName')]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('AppServiceName'))]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                          "name": "AppSettingKey1",
+                          "value": "AppSettingValue1"
+                        },
+                        {
+                            "name": "AppSettingKey2",
+                            "value": "AppSettingValue2"
+                        }
+                    ]
+            }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('AppServiceName'))]"
+            ]
+        }
+    ],
+    "outputs": {}
+}
